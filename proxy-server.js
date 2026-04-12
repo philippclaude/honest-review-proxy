@@ -3,7 +3,7 @@ const fetch = require("node-fetch");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const FSQ_KEY = process.env.FSQ_KEY;
+const GOOGLE_KEY = process.env.GOOGLE_KEY;
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
@@ -18,22 +18,30 @@ app.get("/", (req, res) => {
 app.get("/places", async (req, res) => {
   const { query } = req.query;
   if (!query) return res.status(400).json({ error: "query param required" });
-  if (!FSQ_KEY) return res.status(500).json({ error: "FSQ_KEY not set on server" });
+  if (!GOOGLE_KEY) return res.status(500).json({ error: "GOOGLE_KEY not set on server" });
 
   try {
-    const url = `https://places-api.foursquare.com/places/search?query=${encodeURIComponent(query)}&limit=8&fields=fsq_place_id,name,categories,location,price&near=${encodeURIComponent(query)}`;
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${FSQ_KEY}`,
-        Accept: "application/json",
-        "X-Places-Api-Version": "2025-06-17"
+    const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${GOOGLE_KEY}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    // Normalize to our app's shape
+    const results = (data.results || []).slice(0, 8).map(place => ({
+      fsq_id: place.place_id,
+      name: place.name,
+      categories: [{ name: place.types?.[0]?.replace(/_/g, " ") || "Place" }],
+      location: {
+        locality: place.formatted_address?.split(",").slice(-2, -1)[0]?.trim() || query,
+        country: place.formatted_address?.split(",").pop()?.trim() || "",
+        address: place.formatted_address || ""
       },
-    });
-    const text = await response.text();
-    console.log("FSQ status:", response.status, "body:", text.slice(0, 300));
-    res.status(response.status).send(text);
+      rating: place.rating || null,
+      stats: { total_ratings: place.user_ratings_total || null },
+      price: place.price_level || null,
+    }));
+
+    res.json({ results });
   } catch (err) {
-    console.log("FSQ error:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
