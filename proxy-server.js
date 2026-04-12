@@ -21,9 +21,17 @@ app.get("/places", async (req, res) => {
   if (!FSQ_KEY) return res.status(500).json({ error: "FSQ_KEY not set on server" });
 
   try {
-    const url = `https://api.foursquare.com/v3/places/search?query=${encodeURIComponent(query)}&limit=${limit}&fields=name,categories,location,rating,stats,price`;
-    const response = await fetch(url, {
-      headers: { Authorization: FSQ_KEY, Accept: "application/json" },
+    const url = `https://places.googleapis.com/v1/places:searchText`;
+    
+    // Try Foursquare new API first
+    const fsqUrl = `https://api.foursquare.com/v3/places/search?query=${encodeURIComponent(query)}&limit=${limit}&fields=fsq_id,name,categories,location,rating,stats,price`;
+    
+    const response = await fetch(fsqUrl, {
+      headers: { 
+        Authorization: FSQ_KEY, 
+        Accept: "application/json",
+        "X-Places-Api-Version": "1"
+      },
     });
     const text = await response.text();
     res.status(response.status).send(text);
