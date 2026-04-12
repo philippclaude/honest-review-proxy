@@ -21,8 +21,7 @@ app.get("/places", async (req, res) => {
   if (!GOOGLE_KEY) return res.status(500).json({ error: "GOOGLE_KEY not set on server" });
 
   try {
-    const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${GOOGLE_KEY}`;
-    const response = await fetch(url);
+const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurants+bars+cafes+in+${encodeURIComponent(query)}&key=${GOOGLE_KEY}`;    const response = await fetch(url);
     const data = await response.json();
 
     // Normalize to our app's shape
