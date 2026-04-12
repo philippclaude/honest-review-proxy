@@ -21,7 +21,7 @@ app.get("/places", async (req, res) => {
   if (!FSQ_KEY) return res.status(500).json({ error: "FSQ_KEY not set on server" });
 
   try {
-    const url = `https://places-api.foursquare.com/places/search?query=${encodeURIComponent(query)}&limit=8&fields=fsq_place_id,name,categories,location,rating,stats,price&near=${encodeURIComponent(query)}`;
+    const url = `https://places-api.foursquare.com/places/search?query=${encodeURIComponent(query)}&limit=8&fields=fsq_place_id,name,categories,location,price&near=${encodeURIComponent(query)}`;
     const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${FSQ_KEY}`,
@@ -30,9 +30,10 @@ app.get("/places", async (req, res) => {
       },
     });
     const text = await response.text();
-    console.log("FSQ response:", text.slice(0, 300));
+    console.log("FSQ status:", response.status, "body:", text.slice(0, 300));
     res.status(response.status).send(text);
   } catch (err) {
+    console.log("FSQ error:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
