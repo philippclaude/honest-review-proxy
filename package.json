@@ -1,0 +1,13 @@
+{
+  "name": "honest-review-proxy",
+  "version": "1.0.0",
+  "description": "Proxy server for Honest Review app",
+  "main": "proxy-server.js",
+  "scripts": {
+    "start": "node proxy-server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "node-fetch": "^2.7.0"
+  }
+}
